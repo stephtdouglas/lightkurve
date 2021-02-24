@@ -3,15 +3,19 @@
 Website: https://archive.stsci.edu/hlsp/cdips
 Product Description: https://archive.stsci.edu/hlsps/cdips/hlsp_cdips_tess_ffi_all_tess_v01_readme.md
 """
+import logging
+
 from ..lightcurve import TessLightCurve
 from ..utils import TessQualityFlags
 
 from .generic import read_generic_lightcurve
 
+log = logging.getLogger(__name__)
 
 def read_cdips_lightcurve(filename,
                             flux_column="IRM1",
-                            include_inst_errs=False):
+                            include_inst_errs=False,
+                            quality_bitmask=None):
     """Returns a `TessLightCurve`.
 
     Note: CDIPS light curves have already had quality filtering applied, and
@@ -49,12 +53,15 @@ def read_cdips_lightcurve(filename,
     # Set the appropriate error column for this aperture
     quality_column = f"irq{ap}"
 
+    if quality_bitmask is not None:
+        log.warning("Quality filtering is not enabled for CDIPS lightcurves")
+
     lc = read_generic_lightcurve(filename,
                                  time_column="tmid_bjd",
                                  flux_column=flux_column.lower(),
                                  flux_err_column=flux_err_column,
                                  quality_column=quality_column,
-                                 time_format='bjd')
+                                 time_format='btjd')
 
     # Filter out poor-quality data
     # NOTE: Unfortunately Astropy Table masking does not yet work for columns
